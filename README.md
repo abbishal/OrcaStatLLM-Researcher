@@ -142,10 +142,10 @@ $ python3 run.py
 <p>
   <a href="./examples/papers/Quantum_Computi_6110.pdf">
     <img src="./examples/img/msedge_HKUJlzUuOQ.png" width="300" height="400" style="margin: 15px;">
-  </a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  </a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <a href="examples/papers/Development_and_7336.pdf">
     <img src="examples/img/msedge_ZyOBtlF08d.png" width="300" height="400" style="margin: 15px;">
-  </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <a href="examples/papers/Windows_Vulnera_4616.pdf">
     <img src="examples/img/msedge_BBPfLhjt9o.png" width="300" height="400" style="margin: 15px;">
   </a>
