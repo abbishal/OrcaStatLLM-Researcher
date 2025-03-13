@@ -152,6 +152,7 @@ sudo pip3 install weasyprint
 - Playwright
 ```
 $ sudo pip install playwright
+$ playwright install-deps
 $ playwright install chromium
 ```
 - Pandoc (For PDF Generation)
