@@ -15,6 +15,7 @@
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Setup Guide](#setting-up)
+  - [Common Troubleshooting)[https://github.com/AlgoNetLab/OrcaStatLLM-Researcher/blob/main/Common%20Troubleshooting%20Guide.md]
 - [Examples & Demos](#example-demos)
 - [Contributing](#contributing)
 
