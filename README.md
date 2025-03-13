@@ -15,10 +15,8 @@
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Setup Guide](#setting-up)
-- [Examples & Demos](#examples--demos)
+- [Examples & Demos](#example-demos)
 - [Contributing](#contributing)
-- [License](#license)
-- [Contact & Support](#contact--support)
 
 <br/><br/>
 
@@ -114,15 +112,13 @@ Step-2: Add Those on config.json
 //
 
 ```
-- Python 3.11 or higher
-```bash
-$ sudo apt install python3.11
-```
-- Dependecy for Playwright to Work Perfectly
-``` bash
-$ sudo apt-get update && apt-get install -y build-essential libpq-dev curl libglib2.0-0 libnss3 libnspr4 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 libxkbcommon0 libpango-1.0-0 libcairo2 libasound2 libatspi2.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libgdk-pixbuf2.0-0 && apt-get clean
+- Dependency Fixer (Fixes and install's all Dependency)
 
 ```
+chmod +x install-dep.sh
+sudo ./install-dep.sh
+```
+
 - Playwright
 ```
 $ sudo pip install playwright
@@ -143,7 +139,7 @@ $ pip3 install -r requirements.txt
 $ python3 run.py 
 ```
 
-# Example and Demos
+# Example Demos
 
 ## Generated Papers
 
@@ -162,7 +158,22 @@ $ python3 run.py
 
 ## Demo Video
 
-[Watch the Video](examples/videos/video.mp)
+  
+[![Video Title](https://img.youtube.com/vi/5gfsbCN-eJ4/0.jpg)](https://www.youtube.com/watch?v=5gfsbCN-eJ4)
+
+
+# Contributing
+
+Contributions are welcome! To contribute:
+
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Make your changes and commit them (`git commit -m 'Add new feature'`).
+4. Push to your branch (`git push origin feature-branch`).
+5. Open a Pull Request.
+
+Thank you for your contributions!
+
 
 
     
