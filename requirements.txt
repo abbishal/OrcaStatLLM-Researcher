@@ -17,5 +17,5 @@ PyPDF2
 requests
 wikipedia
 google-genai
-docx
+python-docx
 weasyprint
