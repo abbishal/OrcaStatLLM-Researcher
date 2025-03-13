@@ -157,7 +157,7 @@ $ playwright install chromium
 - Pandoc (For PDF Generation)
 
 ```bash
-$ sudo apt install Pandoc
+$ sudo apt install pandoc
 ```
 
 ## Setting Up
