@@ -25,6 +25,7 @@ sudo apt-get update && sudo apt-get install -y \
     libgdk-pixbuf-xlib-2.0-0 \
     
 sudo pip install playwright --break-system-packages
+playwright install-deps
 playwright install chromium
 
 pip install --upgrade -r requirements.txt --break-system-packages
