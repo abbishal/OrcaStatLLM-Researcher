@@ -25,8 +25,7 @@ sudo apt-get update && sudo apt-get install -y \
     libgdk-pixbuf2.0-0 \
     libgdk-pixbuf-xlib-2.0-0 \
     && sudo apt-get clean
-
-pip3 install --upgrade pip
+    
 sudo pip3 install playwright
 playwright install chromium
 
