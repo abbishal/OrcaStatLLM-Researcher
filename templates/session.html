@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Session - OrcaStatLLM Scientist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/prism.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-dark: #333333;
+            --primary-light: #ffffff;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+            --background-light: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-color: #1e293b;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+        
+        /* Card styles */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+        }
+        
+        /* Title and header fixes */
+        .page-title {
+            color: var(--text-color);
+            font-weight: 700;
+        }
+        
+        .section-title {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+        
+        /* Log entry colors */
+        .log-entry {
+            color: #475569;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(203, 213, 225, 0.3);
+        }
+        
+        .log-entry.high-level {
+            color: #334155;
+            font-weight: 500;
+        }
+        
+        .log-entry.step-log {
+            color: #1e40af;
+            font-weight: 600;
+            background-color: rgba(219, 234, 254, 0.3);
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+        
+        /* Stats item */
+        .stats-item {
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+        
+        /* Points indicator */
+        .points-indicator {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 0.375rem;
+            color: #3b82f6;
+            font-weight: 500;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+        }
+        
+        /* Markdown content */
+        #markdown-content {
+            color: #1e293b;
+        }
+        
+        #markdown-content p,
+        #markdown-content ul,
+        #markdown-content ol {
+            color: #334155;
+        }
+        
+        #markdown-content h1 {
+            color: #111827;
+        }
+        
+        #markdown-content h2 {
+            color: #1f2937;
+        }
+        
+        /* Fix for timestamp colors */
+        .time-stamp {
+            color: #3b82f6;
+        }
+        
+        .researcher-tag {
+            color: #8b5cf6;
+        }
+        
+        /* Fix button text colors */
+        .button-text {
+            color: white;
+        }
+        
+        /* Progress bar */
+        .progress-container {
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 3px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Step indicator styles */
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .step {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            position: relative;
+        }
+        
+        .step.active {
+            background-color: #3b82f6;
+        }
+        
+        .step.completed {
+            background-color: #8b5cf6;
+        }
+        
+        .step-label {
+            display: none;
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #64748b;
+            white-space: nowrap;
+        }
+        
+        .step:hover .step-label {
+            display: block;
+        }
+        
+        .log-entry.new {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .url-highlight {
+            color: #2563eb;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .floating-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: rgba(248, 250, 252, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 0;
+            transition: all 0.3s ease;
+        }
+        .steps-counter {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
+        }
+        
+        .step-counter-text {
+            padding: 2px 8px;
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .research-placeholder {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8fafc;
+        }
+
+        .placeholder-line {
+            height: 12px;
+            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            animation: placeholderWave 2s infinite linear;
+        }
+
+        .placeholder-block {
+            margin-bottom: 20px;
+        }
+
+        .placeholder-heading {
+            height: 22px;
+            width: 50%;
+            background: linear-gradient(90deg, #cbd5e1 25%, #e2e8f0 50%, #cbd5e1 75%);
+            background-size: 200% 100%;
+            border-radius: 6px;
+            margin-bottom: 18px;
+            animation: placeholderWave 2s infinite linear;
+        }
+
+        @keyframes placeholderWave {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .step-connector {
+            position: absolute;
+            height: 3px;
+            background-color: #e2e8f0;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            z-index: 0;
+        }
+
+        .step-connector-progress {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            top: 0;
+            left: 0;
+            z-index: 1;
+            transition: width 0.5s ease;
+        }
+
+        .step {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #f8fafc;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .step.active {
+            background-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+            transform: scale(1.2);
+        }
+
+        .step.active::after {
+            opacity: 1;
+        }
+
+        .step.completed {
+            background-color: #8b5cf6;
+        }
+
+        .step-label {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #64748b;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            width: max-content;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .step:hover .step-label, .step.active .step-label {
+            opacity: 1;
+        }
+        
+        .activity-indicator {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+        
+        .activity-pulse {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+            position: relative;
+        }
+        
+        .activity-pulse::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+        
+        .activity-searching .activity-pulse {
+            background-color: #3b82f6;
+        }
+        
+        .activity-searching .activity-pulse::after {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+        }
+        
+        .activity-reading .activity-pulse {
+            background-color: #8b5cf6;
+        }
+        
+        .activity-reading .activity-pulse::after {
+            box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+        }
+        
+        .activity-analyzing .activity-pulse {
+            background-color: #10b981;
+        }
+        
+        .activity-analyzing .activity-pulse::after {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+        }
+        
+        .activity-writing .activity-pulse {
+            background-color: #f59e0b;
+        }
+        
+        .activity-writing .activity-pulse::after {
+            box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+        }
+        
+        .activity-counter {
+            margin-left: auto;
+            background-color: #f1f5f9;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #475569;
+        }
+        
+        .active-research-section {
+            padding: 6px 12px;
+            border-radius: 6px;
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            margin: 8px 0;
+            color: #1e40af;
+            font-weight: 500;
+            animation: fadeInSection 0.5s ease;
+        }
+        
+        @keyframes fadeInSection {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .research-stage {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .research-stage-planning {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #1e40af;
+        }
+        
+        .research-stage-collecting {
+            background-color: rgba(139, 92, 246, 0.15);
+            color: #5b21b6;
+        }
+        
+        .research-stage-analyzing {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #065f46;
+        }
+        
+        .research-stage-writing {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #92400e;
+        }
+        
+        .research-stage-finalizing {
+            background-color: rgba(236, 72, 153, 0.15);
+            color: #9d174d;
+        }
+
+        .url-tracking-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+        }
+        
+        .url-tracking-item:hover {
+            background-color: rgba(241, 245, 249, 0.8);
+        }
+        
+        .url-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 0 6px;
+        }
+        
+        .web-badge {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #1e40af;
+        }
+        
+        .wiki-badge {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #065f46;
+        }
+        
+        .news-badge {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #92400e;
+        }
+        
+        .arxiv-badge {
+            background-color: rgba(139, 92, 246, 0.15);
+            color: #5b21b6;
+        }
+        
+        .failed-badge {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #991b1b;
+        }
+        
+        @keyframes urlCounterPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .url-counter-updated {
+            animation: urlCounterPulse 0.5s ease-in-out;
+        }
+        
+        .web-scraping-indicator {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px 2px 24px;
+            background-color: rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #1e40af;
+        }
+        
+        .web-scraping-indicator::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            animation: webScrapingPulse 2s infinite;
+        }
+        
+        @keyframes webScrapingPulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .pdf-embed-container {
+            width: 100%;
+            height: 100%;
+            min-height: 80vh;
+        }
+        
+        .pdf-embed {
+            width: 100%;
+            height: 100%;
+            min-height: 80vh;
+            border: none;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            min-height: 200px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #3b82f6;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex justify-between items-center mb-6 floating-header">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl page-title">OrcaStatLLM Scientist</h1>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div class="steps-counter">
+                    <span>Progress:</span>
+                    <div class="step-counter-text">
+                        Step <span id="current-step">0</span>/10
+                    </div>
+                </div>
+                <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="progress-indicator" class="h-full bg-gradient-to-r from-blue-500 to-purple-600" style="width: 0%"></div>
+                </div>
+                <span id="status-badge" class="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                    Researching...
+                </span>
+                <button id="download-pdf" class="hidden px-4 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    PDF
+                </button>
+                <button id="download-markdown" class="hidden px-4 py-1.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                    </svg>
+                    Markdown
+                </button>
+                <button id="download-docx" class="hidden px-4 py-1.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                    </svg>
+                    Word
+                </button>
+            </div>
+        </div>
+        
+        <div class="flex flex-col lg:flex-row gap-5">
+            <div class="w-full lg:w-[65%] glass-card p-5 min-h-[80vh] overflow-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl section-title">Research Paper: <span id="topic-display" class="topic-display">{{ topic }}</span></h2>
+                    <div class="flex space-x-2">
+                        <button id="toggle-view" class="px-3 py-1 text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md transition flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                            </svg>
+                            Outline View
+                        </button>
+                    </div>
+                </div>
+                <div id="pdf-container" class="pdf-embed-container hidden">
+                    <div id="pdf-loading" class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                    <iframe id="pdf-embed" class="pdf-embed hidden"></iframe>
+                </div>
+                
+                <div id="markdown-content" class="prose max-w-none">
+                    <div id="research-placeholder" class="research-placeholder">
+                        <div id="research-activity-display" class="mb-6 hidden">
+                            <div class="research-stage research-stage-planning">Planning Research</div>
+                            <h3 class="text-lg font-semibold text-slate-800 mb-2">Current Activity</h3>
+                            <div id="active-research-section" class="active-research-section">
+                                Analyzing research topic: <span id="active-topic">{{topic}}</span>
+                            </div>
+                            
+                            <div class="mt-4 mb-2">
+                                <span class="text-sm font-medium text-slate-700">Research Activities</span>
+                            </div>
+                            
+                            <div class="activity-indicator activity-searching">
+                                <div class="activity-pulse"></div>
+                                <span>Gathering Sources</span>
+                                <span id="sources-indicator" class="activity-counter">0</span>
+                            </div>
+                            
+                            <div class="activity-indicator activity-reading">
+                                <div class="activity-pulse"></div>
+                                <span>Processing Documents</span>
+                                <span id="documents-indicator" class="activity-counter">0</span>
+                            </div>
+                            
+                            <div class="activity-indicator activity-analyzing">
+                                <div class="activity-pulse"></div>
+                                <span>Analyzing Content</span>
+                                <span id="analysis-indicator" class="activity-counter">0</span>
+                            </div>
+                            
+                            <div class="activity-indicator activity-writing">
+                                <div class="activity-pulse"></div>
+                                <span>Writing Draft</span>
+                                <span id="sections-indicator" class="activity-counter">0</span>
+                            </div>
+
+                            <div class="mt-4">
+                                <div class="web-scraping-indicator" id="web-scraping-indicator">
+                                    Scraping web pages...
+                                </div>
+                            </div>
+                    
+                            <div class="mt-4 p-3 bg-slate-50 rounded-md border border-slate-200">
+                                <div class="text-sm font-medium text-slate-700 mb-2">URL Tracking</div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="url-tracking-item">
+                                        <span class="url-count-badge web-badge" id="web-page-count">0</span>
+                                        <span>Web Pages</span>
+                                    </div>
+                                    <div class="url-tracking-item">
+                                        <span class="url-count-badge wiki-badge" id="wiki-page-count">0</span>
+                                        <span>Wikipedia</span>
+                                    </div>
+                                    <div class="url-tracking-item">
+                                        <span class="url-count-badge news-badge" id="news-page-count">0</span>
+                                        <span>News</span>
+                                    </div>
+                                    <div class="url-tracking-item">
+                                        <span class="url-count-badge arxiv-badge" id="arxiv-page-count">0</span>
+                                        <span>arXiv</span>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-xs text-slate-500 flex justify-between">
+                                    <span>Total URLs: <span id="total-urls-scraped">0</span></span>
+                                    <span>Failed: <span id="failed-scrapes-count">0</span></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="placeholder-block">
+                            <div class="placeholder-heading"></div>
+                            <div class="placeholder-line"></div>
+                            <div class="placeholder-line" style="width: 95%"></div>
+                            <div class="placeholder-line" style="width: 98%"></div>
+                            <div class="placeholder-line" style="width: 92%"></div>
+                            <div class="placeholder-line" style="width: 96%"></div>
+                        </div>
+                        
+                        <div class="placeholder-block">
+                            <div class="placeholder-heading" style="width: 35%"></div>
+                            <div class="placeholder-line"></div>
+                            <div class="placeholder-line" style="width: 98%"></div>
+                            <div class="placeholder-line" style="width: 95%"></div>
+                            <div class="placeholder-line" style="width: 90%"></div>
+                        </div>
+                        
+                        <div id="placeholder-subtopics" class="mt-8">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="w-full lg:w-[35%] flex flex-col gap-5">
+                <div class="glass-card p-5">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-xl font-semibold text-slate-800">Research Progress</h2>
+                        <div class="flex space-x-2">
+                            <button id="auto-scroll" class="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                </svg>
+                                Auto-scroll
+                            </button>
+                            <button id="clear-logs" class="px-2 py-1 text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="step-indicator mb-4">
+                        <div class="step-connector">
+                            <div class="step-connector-progress" id="step-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="step" data-step="1" data-name="Topic Analysis">
+                            <span class="step-label">Topic Analysis</span>
+                        </div>
+                        <div class="step" data-step="2" data-name="Initial Research">
+                            <span class="step-label">Initial Research</span>
+                        </div>
+                        <div class="step" data-step="3" data-name="Data Collection">
+                            <span class="step-label">Data Collection</span>
+                        </div>
+                        <div class="step" data-step="4" data-name="Key Findings">
+                            <span class="step-label">Key Findings</span>
+                        </div>
+                        <div class="step" data-step="5" data-name="Analysis">
+                            <span class="step-label">Analysis</span>
+                        </div>
+                        <div class="step" data-step="6" data-name="Synthesis">
+                            <span class="step-label">Synthesis</span>
+                        </div>
+                        <div class="step" data-step="7" data-name="Draft Creation">
+                            <span class="step-label">Draft Creation</span>
+                        </div>
+                        <div class="step" data-step="8" data-name="Review & Revise">
+                            <span class="step-label">Review & Revise</span>
+                        </div>
+                        <div class="step" data-step="9" data-name="References">
+                            <span class="step-label">References</span>
+                        </div>
+                        <div class="step" data-step="10" data-name="Final Document">
+                            <span class="step-label">Final Document</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center mb-2 mt-4">
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-medium rounded px-2 py-0.5">
+                            STEP <span id="current-step-number">0</span>/10
+                        </div>
+                        <div class="ml-2 text-sm font-semibold text-slate-700" id="current-step-name">
+                            Initializing...
+                        </div>
+                    </div>
+                    
+                    <div id="logs-container" class="text-sm overflow-y-auto h-[calc(40vh-8rem)] bg-slate-50 p-3 rounded-lg border border-slate-200"></div>
+                </div>
+                
+                <div class="glass-card p-5">
+                    <h2 class="text-xl font-semibold text-slate-800 mb-3">Research Stats</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="stats-item p-3 rounded-lg">
+                            <div class="text-gray-500 text-xs">Sources</div>
+                            <div id="sources-count" class="text-xl font-semibold text-slate-800">0</div>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                <span id="web-sources-badge" class="px-1.5 py-0.5 text-xs rounded-md bg-blue-100 text-blue-700">
+                                    Web: <span id="web-sources-count">0</span>
+                                </span>
+                                <span id="wiki-sources-badge" class="px-1.5 py-0.5 text-xs rounded-md bg-green-100 text-green-700">
+                                    Wiki: <span id="wiki-sources-count">0</span>
+                                </span>
+                                <span id="news-sources-badge" class="px-1.5 py-0.5 text-xs rounded-md bg-yellow-100 text-yellow-700">
+                                    News: <span id="news-sources-count">0</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="stats-item p-3 rounded-lg">
+                            <div class="text-gray-500 text-xs">Word Count</div>
+                            <div id="word-count" class="text-xl font-semibold text-slate-800">0</div>
+                            <div class="flex items-center mt-1">
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div id="word-count-progress" class="bg-blue-600 h-1.5 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stats-item p-3 rounded-lg">
+                            <div class="text-gray-500 text-xs">Citations</div>
+                            <div id="citations-count" class="text-xl font-semibold text-slate-800">0</div>
+                            <div class="text-gray-500 text-xs mt-1">
+                                <span id="academic-citations-badge" class="px-1.5 py-0.5 text-xs rounded-md bg-purple-100 text-purple-700">
+                                    Academic: <span id="academic-citations-count">0</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="stats-item p-3 rounded-lg">
+                            <div class="text-gray-500 text-xs">Research Time</div>
+                            <div id="research-time" class="text-xl font-semibold text-slate-800">00:00</div>
+                            <div class="text-gray-500 text-xs mt-1" id="elapsed-time-indicator">Just started</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sessionId = "{{ session_id }}";
+        let currentMarkdown = "";
+        let updateInterval;
+        let lastLogCount = 0;
+        let processedLogIds = new Set();
+        let isAutoScrollEnabled = true;
+        let researchStartTime = new Date();
+        let currentStep = 0;
+        let sourcesCounts = {
+            web: 0,
+            wikipedia: 0,
+            news: 0,
+            academic: 0
+        };
+        let activityCounters = {
+            sources: 0,
+            documents: 0,
+            analysis: 0,
+            sections: 0
+        };
+        let citationCounts = {
+            academic: 0,
+            total: 0
+        };
+        let subtopics = [];
+        let currentSubtopic = "";
+        let urlTrackingData = {
+            total_urls_scraped: 0,
+            web_page_count: 0,
+            wikipedia_count: 0,
+            news_count: 0,
+            arxiv_count: 0,
+            failed_scrapes: 0
+        };
+        let lastUrlCounts = {
+            web_page_count: 0,
+            wikipedia_count: 0,
+            news_count: 0,
+            arxiv_count: 0,
+            total_urls_scraped: 0,
+            failed_scrapes: 0
+        };
+        let progressData = {
+            current_step: 0,
+            max_steps: 10,
+            step_name: "Initializing",
+            step_details: "",
+            subtasks: [],
+            completed_subtasks: 0,
+            analyzing_count: 0
+        };
+        let actionType = "write_paper"; 
+        let pdfLoaded = false;
+        
+        const researchStages = [
+            {step: 1, name: "Planning", class: "research-stage-planning"},
+            {step: 3, name: "Collecting Data", class: "research-stage-collecting"},
+            {step: 5, name: "Analyzing", class: "research-stage-analyzing"},
+            {step: 7, name: "Writing", class: "research-stage-writing"},
+            {step: 9, name: "Finalizing", class: "research-stage-finalizing"}
+        ];
+        
+        const stepDefinitions = [
+            { step: 1, name: "Topic Analysis", description: "Analyzing research topic and context" },
+            { step: 2, name: "Initial Research", description: "Planning research approach and strategy" },
+            { step: 3, name: "Data Collection", description: "Gathering information from various sources" },
+            { step: 4, name: "Key Findings", description: "Identifying critical insights from research" },
+            { step: 5, name: "Analysis", description: "In-depth analysis of collected information" },
+            { step: 6, name: "Synthesis", description: "Combining insights into a coherent narrative" },
+            { step: 7, name: "Draft Creation", description: "Writing initial research document sections" },
+            { step: 8, name: "Review & Revise", description: "Refining and improving the document" },
+            { step: 9, name: "References", description: "Finalizing citations and references" },
+            { step: 10, name: "Final Document", description: "Creating the completed research paper" }
+        ];
+        
+        document.getElementById('research-activity-display').classList.remove('hidden');
+        
+        marked.setOptions({
+        breaks: true,
+        gfm: true,
+        headerIds: true,
+        sanitize: false,
+        highlight: function(code, language) {
+            if (Prism.languages[language]) {
+                return Prism.highlight(code, Prism.languages[language], language);
+            } else {
+                return code;
+            }
+        }
+    });
+    
+    function updateURLTracking(trackingData) {
+        if (!trackingData) return;
+
+        lastUrlCounts = {...urlTrackingData};
+        urlTrackingData = trackingData;
+
+        document.getElementById('web-page-count').textContent = trackingData.web_page_count || 0;
+        document.getElementById('wiki-page-count').textContent = trackingData.wikipedia_count || 0;
+        document.getElementById('news-page-count').textContent = trackingData.news_count || 0;
+        document.getElementById('arxiv-page-count').textContent = trackingData.arxiv_count || 0;
+        document.getElementById('total-urls-scraped').textContent = trackingData.total_urls_scraped || 0;
+        document.getElementById('failed-scrapes-count').textContent = trackingData.failed_scrapes || 0;
+        
+
+        ['web_page_count', 'wikipedia_count', 'news_count', 'arxiv_count'].forEach(key => {
+            const element = document.getElementById(key.replace('_', '-'));
+            if (element && lastUrlCounts[key] !== urlTrackingData[key]) {
+                element.classList.remove('url-counter-updated');
+                void element.offsetWidth; 
+                element.classList.add('url-counter-updated');
+
+                if (key === 'web_page_count') {
+                    document.getElementById('web-sources-count').textContent = trackingData.web_page_count || 0;
+                } else if (key === 'wikipedia_count') {
+                    document.getElementById('wiki-sources-count').textContent = trackingData.wikipedia_count || 0;
+                } else if (key === 'news_count') {
+                    document.getElementById('news-sources-count').textContent = trackingData.news_count || 0;
+                }
+            }
+        });
+        
+        const totalWebSources = (trackingData.web_page_count || 0) + 
+                              (trackingData.wikipedia_count || 0) + 
+                              (trackingData.news_count || 0) + 
+                              (trackingData.arxiv_count || 0);
+        
+        document.getElementById('sources-count').textContent = totalWebSources;
+        document.getElementById('sources-indicator').textContent = totalWebSources;
+    }
+    
+    function updateProgressUI(progress) {
+        if (!progress) return;
+        
+        progressData = progress;
+        
+        const stepNumber = progress.current_step || 0;
+        const stepName = progress.step_name || "Initializing";
+        const stepDetails = progress.step_details || "";
+
+        document.getElementById('current-step').textContent = stepNumber;
+        updateStepProgress(stepNumber, stepName, stepDetails);
+ 
+        if (progress.subtasks && progress.subtasks.length > 0) {
+
+            let subtasksContainer = document.getElementById('subtasks-container');
+            if (!subtasksContainer) {
+                subtasksContainer = document.createElement('div');
+                subtasksContainer.id = 'subtasks-container';
+                subtasksContainer.className = 'mt-3 mb-2';
+                document.getElementById('logs-container').parentNode.insertBefore(
+                    subtasksContainer, 
+                    document.getElementById('logs-container')
+                );
+            }
+            
+            subtasksContainer.innerHTML = '';
+            
+            const completedSubtasks = Math.min(progress.completed_subtasks || 0, progress.subtasks.length);
+            const subtasksProgressPercentage = progress.subtasks.length > 0 ? 
+                (completedSubtasks / progress.subtasks.length) * 100 : 0;
+            
+  
+            const subtaskProgressBar = document.createElement('div');
+            subtaskProgressBar.className = 'w-full bg-gray-200 rounded-full h-1.5 mb-3';
+            subtaskProgressBar.innerHTML = `
+                <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${subtasksProgressPercentage}%"></div>
+            `;
+            subtasksContainer.appendChild(subtaskProgressBar);
+            
+            const subtasksList = document.createElement('div');
+            subtasksList.className = 'space-y-1 text-xs font-medium text-slate-600';
+            
+            progress.subtasks.forEach((subtask, index) => {
+                const isCompleted = index < completedSubtasks;
+                const subtaskItem = document.createElement('div');
+                subtaskItem.className = `flex items-center ${isCompleted ? 'text-blue-600' : 'text-slate-500'}`;
+        
+                if (isCompleted) {
+                    subtaskItem.innerHTML = `
+                        <svg class="w-3 h-3 mr-1.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                    `;
+                } else {
+                    subtaskItem.innerHTML = `
+                        <div class="w-3 h-3 mr-1.5 rounded-full border border-slate-400"></div>
+                    `;
+                }
+                
+                const subtaskText = document.createElement('span');
+                subtaskText.textContent = subtask;
+                subtaskItem.appendChild(subtaskText);
+                
+                subtasksList.appendChild(subtaskItem);
+            });
+            
+            subtasksContainer.appendChild(subtasksList);
+        }
+        
+        if (progress.analyzing_count) {
+            document.getElementById('analysis-indicator').textContent = progress.analyzing_count;
+        }
+    }
+    
+    function updateStatus(status) {
+        const statusBadge = document.getElementById('status-badge');
+        
+        if (status === 'researching') {
+            statusBadge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200';
+            statusBadge.textContent = 'Researching...';
+            
+            document.getElementById('download-pdf').classList.add('hidden');
+            document.getElementById('download-markdown').classList.add('hidden');
+            document.getElementById('download-docx').classList.add('hidden');
+        } else if (status === 'completed') {
+            statusBadge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200';
+            statusBadge.textContent = 'Completed';
+            
+            document.getElementById('download-pdf').classList.remove('hidden');
+            document.getElementById('download-markdown').classList.remove('hidden');
+            document.getElementById('download-docx').classList.remove('hidden');
+            updateStepProgress(10, "Final Document", "Research completed successfully");
+            loadPDFView();
+        } else if (status === 'error') {
+            statusBadge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200';
+            statusBadge.textContent = 'Error';
+        }
+    }
+    
+    function addLogEntry(log) {
+        if (log.id && processedLogIds.has(log.id)) {
+            return;
+        }
+        
+        const logsContainer = document.getElementById('logs-container');
+        const logEntry = document.createElement('div');
+        logEntry.className = log.high_level 
+            ? 'log-entry high-level py-1' 
+            : 'log-entry py-1';
+        
+        const timestamp = new Date(log.timestamp);
+        const timeStr = timestamp.toLocaleTimeString();
+        
+        let messageContent = log.message;
+        
+        function makeUrlsClickable(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, url => 
+                `<span class="url-highlight" onclick="window.open('${url}', '_blank')">${url}</span>`
+            );
+        }
+        
+        messageContent = makeUrlsClickable(messageContent);
+        if (log.high_level && messageContent.includes("Step")) {
+            const stepMatch = messageContent.match(/Step (\d+):/);
+            if (stepMatch && stepMatch[1]) {
+                currentStep = parseInt(stepMatch[1]);
+                updateStepProgress(currentStep);
+
+                updateResearchStage(currentStep);
+                updateElapsedTimeIndicator(currentStep);
+            }
+        }
+        
+        if (log.high_level) {
+            const subtopicMatch = messageContent.match(/[Ss]ubtopic(?:\s+\d+\/\d+)?(?:\s*:\s*)([^".:]+)/);
+            if (subtopicMatch && subtopicMatch[1]) {
+                currentSubtopic = subtopicMatch[1].trim();
+                document.getElementById('active-topic').textContent = currentSubtopic;
+                document.getElementById('active-research-section').textContent = 
+                    `Researching subtopic: ${currentSubtopic}`;
+                if (!subtopics.includes(currentSubtopic)) {
+                    subtopics.push(currentSubtopic);
+                    updateSubtopicPlaceholders();
+                }
+            }
+        }
+        
+        if (messageContent.includes("Scraped URL:") || messageContent.includes("web page scraped")) {
+            activityCounters.documents++;
+            document.getElementById('documents-indicator').textContent = activityCounters.documents;
+        }
+        
+        if (messageContent.includes("web source") || messageContent.includes("web page")) {
+            sourcesCounts.web++;
+            activityCounters.sources++;
+            updateSourceCounters();
+        } else if (messageContent.includes("Wikipedia")) {
+            sourcesCounts.wikipedia++;
+            activityCounters.sources++;
+            updateSourceCounters();
+        } else if (messageContent.includes("news article") || messageContent.includes("news source")) {
+            sourcesCounts.news++;
+            activityCounters.sources++;
+            updateSourceCounters();
+        } else if (messageContent.includes("academic paper") || messageContent.includes("journal") || messageContent.includes("arXiv")) {
+            sourcesCounts.academic++;
+            activityCounters.sources++;
+            citationCounts.academic++;
+            updateSourceCounters();
+        }
+        
+        if (messageContent.includes("processing") && (messageContent.includes("content") || messageContent.includes("document") || messageContent.includes("article"))) {
+            activityCounters.documents++;
+            document.getElementById('documents-indicator').textContent = activityCounters.documents;
+        }
+        
+        if (messageContent.includes("analyzing") || messageContent.includes("summarizing") || messageContent.includes("extracting")) {
+            activityCounters.analysis++;
+            document.getElementById('analysis-indicator').textContent = activityCounters.analysis;
+        }
+        
+        if (messageContent.includes("generating content") || messageContent.includes("generated content") || messageContent.includes("writing")) {
+            activityCounters.sections++;
+            document.getElementById('sections-indicator').textContent = activityCounters.sections;
+        }
+
+        if (messageContent.includes("citation") || messageContent.includes("reference")) {
+            citationCounts.total++;
+            document.getElementById('citations-count').textContent = citationCounts.total;
+            document.getElementById('academic-citations-count').textContent = citationCounts.academic;
+        }
+        
+
+        let iconHtml = '';
+        if (log.high_level) {
+            iconHtml = '<span class="inline-block mr-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></span>';
+        }
+        
+        if (messageContent.includes("Navigating to URL:")) {
+            logEntry.innerHTML = `<span class="time-stamp">[${timeStr}]</span> ${iconHtml}<span class="researcher-tag">[RESEARCHER]</span> ${messageContent}`;
+        } else if (log.high_level) {
+            logEntry.innerHTML = `<span class="time-stamp">[${timeStr}]</span> ${iconHtml}<span class="researcher-tag">[RESEARCHER]</span> ${messageContent}`;
+        } else {
+            logEntry.innerHTML = `<span class="time-stamp">[${timeStr}]</span> ${messageContent}`;
+        }
+        
+        logsContainer.appendChild(logEntry);
+
+        updateWebScrapingIndicator(messageContent);
+        
+        if (isAutoScrollEnabled) {
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+        
+        if (log.id) {
+            processedLogIds.add(log.id);
+        }
+        
+        logEntry.classList.add('new');
+        setTimeout(() => {
+            logEntry.classList.remove('new');
+        }, 300);
+        
+
+        updateResearchTime();
+    }
+    
+    function updateWebScrapingIndicator(messageContent) {
+        const indicator = document.getElementById('web-scraping-indicator');
+        
+        if (messageContent.includes("Scraping web page") || 
+            messageContent.includes("navigating to") || 
+            messageContent.includes("Scraped URL")) {
+                
+            indicator.textContent = `Scraping web pages... (${urlTrackingData.web_page_count || 0})`;
+            indicator.style.display = 'inline-flex';
+        } else if (currentStep >= 8) {
+            indicator.style.display = 'none';
+        }
+    }
+    
+    function updateSourceCounters() {
+        document.getElementById('sources-indicator').textContent = activityCounters.sources;
+        document.getElementById('web-sources-count').textContent = sourcesCounts.web;
+        document.getElementById('wiki-sources-count').textContent = sourcesCounts.wikipedia;
+        document.getElementById('news-sources-count').textContent = sourcesCounts.news;
+    }
+    
+    function updateElapsedTimeIndicator(step) {
+        const elapsed = new Date() - researchStartTime;
+        const minutes = Math.floor(elapsed / 60000);
+        const indicator = document.getElementById('elapsed-time-indicator');
+        
+        if (step <= 2) {
+            indicator.textContent = "Planning phase";
+        } else if (step <= 5) {
+            indicator.textContent = `Data collection (${minutes}m)`;
+        } else if (step <= 8) {
+            indicator.textContent = `Writing phase (${minutes}m)`;
+        } else {
+            indicator.textContent = `Finalizing (${minutes}m total)`;
+        }
+    }
+    
+    function updateResearchStage(step) {
+        const stageElement = document.querySelector('.research-stage');
+    
+        const stage = researchStages.filter(s => step >= s.step).pop() || researchStages[0];
+        
+        stageElement.textContent = stage.name;
+        stageElement.className = `research-stage ${stage.class}`;
+    }
+    
+    function updateStepProgress(step, stepName = null, stepDetails = null) {
+        document.getElementById('current-step').textContent = step;
+        document.getElementById('current-step-number').textContent = step;
+
+        if (stepName) {
+            document.getElementById('current-step-name').textContent = stepName;
+        } else {
+            const stepDef = stepDefinitions.find(def => def.step === step);
+            if (stepDef) {
+                document.getElementById('current-step-name').textContent = stepDef.name;
+            }
+        }
+        
+        if (stepDetails && document.getElementById('step-details')) {
+            document.getElementById('step-details').textContent = stepDetails;
+        }
+        
+        const progressPercentage = (step / 10) * 100;
+        document.getElementById('progress-indicator').style.width = `${progressPercentage}%`;
+        document.getElementById('step-progress-bar').style.width = `${progressPercentage}%`;
+        const steps = document.querySelectorAll('.step');
+        steps.forEach((stepElement, index) => {
+            const stepNum = parseInt(stepElement.dataset.step);
+            
+            if (stepNum < step) {
+                stepElement.classList.add('completed');
+                stepElement.classList.remove('active');
+            } else if (stepNum === step) {
+                stepElement.classList.add('active');
+                stepElement.classList.remove('completed');
+            } else {
+                stepElement.classList.remove('active', 'completed');
+            }
+        });
+        updateResearchStage(step);
+        updateElapsedTimeIndicator(step);
+    }
+    
+    function updateSubtopicPlaceholders() {
+        const placeholderContainer = document.getElementById('placeholder-subtopics');
+        placeholderContainer.innerHTML = '';
+        
+        subtopics.forEach((subtopic, index) => {
+            const subtopicPlaceholder = document.createElement('div');
+            subtopicPlaceholder.className = 'placeholder-block';
+            const isCurrentSubtopic = subtopic === currentSubtopic;
+            
+            subtopicPlaceholder.innerHTML = `
+                <div class="placeholder-heading ${isCurrentSubtopic ? 'bg-blue-200' : ''}" style="width: 50%"></div>
+                <div class="placeholder-line ${isCurrentSubtopic ? 'bg-blue-50' : ''}" style="width: 98%"></div>
+                <div class="placeholder-line ${isCurrentSubtopic ? 'bg-blue-50' : ''}" style="width: 96%"></div>
+                <div class="placeholder-line ${isCurrentSubtopic ? 'bg-blue-50' : ''}" style="width: 94%"></div>
+            `;
+            const label = document.createElement('div');
+            label.className = 'text-xs text-gray-500 mb-1';
+            label.textContent = `Section ${index + 1}: ${subtopic}`;
+            subtopicPlaceholder.insertBefore(label, subtopicPlaceholder.firstChild);
+            
+            placeholderContainer.appendChild(subtopicPlaceholder);
+        });
+    }
+    
+    function updateResearchTime() {
+        const now = new Date();
+        const diff = now - researchStartTime;
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        document.getElementById('research-time').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    function updateMarkdown(markdown) {
+        if (markdown === currentMarkdown) return;
+        
+        currentMarkdown = markdown;
+        const markdownContent = document.getElementById('markdown-content');
+
+        if (!markdown || markdown.trim() === '') {
+            return;
+        }
+        if (pdfLoaded) return;
+        
+        markdownContent.innerHTML = '';
+        markdownContent.innerHTML = marked.parse(markdown);
+        const wordCount = markdown.split(/\s+/).length;
+        document.getElementById('word-count').textContent = wordCount.toLocaleString();
+        
+        const citationMatches = markdown.match(/\[\d+\]/g) || [];
+        const uniqueCitations = new Set(citationMatches);
+        document.getElementById('citations-count').textContent = uniqueCitations.size;
+        Prism.highlightAllUnder(markdownContent);
+        markdownContent.querySelectorAll('img').forEach(img => {
+            img.addEventListener('click', function() {
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50';
+                modal.onclick = function() {
+                    document.body.removeChild(modal);
+                };
+                
+                const imgClone = document.createElement('img');
+                imgClone.src = img.src;
+                imgClone.className = 'max-w-[90%] max-h-[90%] rounded-lg shadow-lg';
+                modal.appendChild(imgClone);
+                
+                document.body.appendChild(modal);
+            });
+            img.style.cursor = 'zoom-in';
+        });
+    }
+    
+    async function fetchSessionStatus() {
+        try {
+            const response = await fetch(`/api/session/${sessionId}/status`);
+            if (!response.ok) {
+                console.error(`HTTP error! status: ${response.status}`);
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                console.error('Error fetching session status:', data.error);
+                return;
+            }
+            if (data.action_type) {
+                actionType = data.action_type;
+            }
+            
+            updateStatus(data.status);
+            
+            if (data.logs && data.logs.length > 0) {
+                data.logs.forEach(log => addLogEntry(log));
+                const completionMessages = [
+                    "Research completed successfully",
+                    "PDF document generated successfully"
+                ];
+                
+                const hasCompletionMessage = data.logs.some(log => 
+                    completionMessages.some(msg => log.message && log.message.includes(msg))
+                );
+                
+                if (hasCompletionMessage && data.status !== 'completed') {
+                    console.log("Found completion message in logs, forcing UI update");
+                    updateStepProgress(10, "Final Document", "Research completed successfully");
+                    document.getElementById('download-pdf').classList.remove('hidden');
+                    document.getElementById('download-docx').classList.remove('hidden');
+                    loadPDFView();
+                }
+            }
+            
+            if (data.markdown && data.markdown.trim() !== '' && !pdfLoaded) {
+                updateMarkdown(data.markdown);
+                if (document.getElementById('research-placeholder')) {
+                    document.getElementById('research-placeholder').style.display = 'none';
+                }
+            }
+            if (data.url_tracking) {
+                updateURLTracking(data.url_tracking);
+            }
+            
+            if (data.progress) {
+                updateProgressUI(data.progress);
+            }
+            if (data.has_pdf) {
+                document.getElementById('download-pdf').classList.remove('hidden');
+                if (data.status === 'completed' || data.current_step >= 10) {
+                    loadPDFView();
+                }
+            }
+            if (data.current_step >= 10 || data.status === 'completed') {
+                updateStepProgress(10, "Final Document", "Research completed successfully");
+                document.getElementById('download-pdf').classList.remove('hidden');
+                document.getElementById('download-docx').classList.remove('hidden');
+                loadPDFView();
+                if (data.status === 'completed') {
+                    clearInterval(updateInterval);
+                }
+            } 
+            else if (data.status === 'error') {
+                clearInterval(updateInterval);
+            }
+        } catch (error) {
+            console.error('Error fetching session status:', error);
+        }
+    }
+    
+    function loadPDFView() {
+        if (pdfLoaded) return;
+        document.getElementById('pdf-container').classList.remove('hidden');
+        document.getElementById('markdown-content').classList.add('hidden');
+        document.getElementById('toggle-view').classList.add('hidden');
+        document.getElementById('pdf-loading').classList.remove('hidden');
+        fetch(`/api/session/${sessionId}/status`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.has_pdf) {
+                    const pdfEmbed = document.getElementById('pdf-embed');
+                    pdfEmbed.src = `/api/session/${sessionId}/view_pdf`;
+                    pdfEmbed.onload = function() {
+                        document.getElementById('pdf-loading').classList.add('hidden');
+                        pdfEmbed.classList.remove('hidden');
+                        pdfLoaded = true;
+                    };
+                    pdfEmbed.onerror = function() {
+                        console.error("Failed to load PDF in iframe");
+                        document.getElementById('pdf-loading').innerHTML = `
+                            <div class="text-center">
+                                <p class="text-red-600 mb-2">Failed to load PDF preview</p>
+                                <button onclick="retryPDFLoad()" class="px-4 py-2 bg-blue-600 text-white rounded">
+                                    Retry
+                                </button>
+                            </div>
+                        `;
+                    };
+                } else {
+                    document.getElementById('pdf-loading').innerHTML = `
+                        <div class="text-center">
+                            <p class="mb-2">PDF is being generated...</p>
+                            <div class="spinner"></div>
+                            <p class="mt-4 text-sm text-gray-500">This may take up to 30 seconds</p>
+                        </div>
+                    `;
+                    
+                    setTimeout(loadPDFView, 3000);
+                }
+            })
+            .catch(error => {
+                console.error("Error checking PDF status:", error);
+                document.getElementById('pdf-loading').innerHTML = `
+                    <div class="text-center">
+                        <p class="text-red-600 mb-2">Error checking PDF status</p>
+                        <button onclick="retryPDFLoad()" class="px-4 py-2 bg-blue-600 text-white rounded">
+                            Retry
+                        </button>
+                    </div>
+                `;
+            });
+    }
+    
+    function retryPDFLoad() {
+        document.getElementById('pdf-loading').innerHTML = `<div class="spinner"></div>`;
+        setTimeout(loadPDFView, 1000);
+    }
+    
+    function toggleOutlineView() {
+        const markdownContent = document.getElementById('markdown-content');
+        const toggleButton = document.getElementById('toggle-view');
+        
+        if (markdownContent.classList.contains('outline-mode')) {
+            markdownContent.classList.remove('outline-mode');
+            toggleButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg> Outline View';
+            markdownContent.querySelectorAll('p, ul, ol, blockquote, pre, table').forEach(el => {
+                el.classList.remove('hidden');
+            });
+        } else {
+            markdownContent.classList.add('outline-mode');
+            toggleButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg> Full View';
+            markdownContent.querySelectorAll('p, ul, ol, blockquote, pre, table').forEach(el => {
+                el.classList.add('hidden');
+            });
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchSessionStatus();
+        const fastInterval = setInterval(() => {
+            fetchSessionStatus();
+        }, 700);
+        setTimeout(() => {
+            clearInterval(fastInterval);
+            updateInterval = setInterval(fetchSessionStatus, 1500);
+        }, 10000);
+        setTimeout(() => {
+            const markdownContent = document.getElementById('markdown-content');
+            if (markdownContent && markdownContent.innerHTML.trim() !== '' && 
+                markdownContent.innerHTML.includes('Conclusion')) {
+                
+                console.log("Forcing completion state after timeout");
+                updateStepProgress(10, "Final Document", "Research completed");
+                document.getElementById('download-pdf').classList.remove('hidden');
+                document.getElementById('download-markdown').classList.remove('hidden');
+            }
+        }, 300000);
+        
+        document.getElementById('download-pdf').addEventListener('click', function() {
+            this.innerHTML = '<svg class="animate-spin h-4 w-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Downloading...';
+            
+            window.location.href = `/api/session/${sessionId}/download_pdf`;
+            setTimeout(() => {
+                this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>PDF';
+            }, 3000);
+        });
+        
+        document.getElementById('download-markdown').addEventListener('click', function() {
+            this.innerHTML = '<svg class="animate-spin h-4 w-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Downloading...';
+            
+            window.location.href = `/api/session/${sessionId}/download_markdown`;
+            setTimeout(() => {
+                this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>Markdown';
+            }, 3000);
+        });
+        
+        document.getElementById('download-docx').addEventListener('click', function() {
+            this.innerHTML = '<svg class="animate-spin h-4 w-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Downloading...';
+            
+            window.location.href = `/api/session/${sessionId}/download_docx`;
+            setTimeout(() => {
+                this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>Word';
+            }, 3000);
+        });
+        
+        document.getElementById('clear-logs').addEventListener('click', function() {
+            document.getElementById('logs-container').innerHTML = '';
+        });
+        
+        document.getElementById('auto-scroll').addEventListener('click', function() {
+            isAutoScrollEnabled = !isAutoScrollEnabled;
+            this.classList.toggle('bg-blue-600');
+            this.classList.toggle('bg-slate-200');
+        });
+        
+        document.getElementById('toggle-view').addEventListener('click', toggleOutlineView);
+        fetchSessionStatus();
+    });
+document.addEventListener('DOMContentLoaded', function() {
+    function hideUrlTrackingBox() {
+        const urlTrackingBoxes = document.querySelectorAll('.url-tracking-container');
+        if (urlTrackingBoxes && urlTrackingBoxes.length > 0) {
+            urlTrackingBoxes.forEach(box => {
+                box.style.display = 'none';
+            });
+            console.log('URL tracking box hidden');
+        }
+    }
+    
+    function updateSourceCounts(data) {
+        if (!data || !data.url_tracking) return;
+        
+        const urlTracking = data.url_tracking;
+        const totalUrls = urlTracking.total_urls_scraped || 0;
+        const sourcesCountElement = document.getElementById('sources-count');
+        if (sourcesCountElement) {
+            sourcesCountElement.textContent = totalUrls.toString();
+        }
+
+        const academicSources = (urlTracking.academic_pdf_count || 0) + 
+                               (urlTracking.arxiv_count || 0) + 
+                               (urlTracking.doi_papers_count || 0);
+        
+        const academicCountElement = document.getElementById('academic-count');
+        if (academicCountElement) {
+            academicCountElement.textContent = academicSources.toString();
+        }
+    }
+    
+    hideUrlTrackingBox();
+    const targetNode = document.getElementById('progress-container');
+    if (targetNode) {
+        const observer = new MutationObserver(function(mutations) {
+            hideUrlTrackingBox();
+            try {
+                if (window.researchData && window.researchData.url_tracking) {
+                    updateSourceCounts(window.researchData);
+                }
+            } catch (e) {
+                console.error('Error updating source counts:', e);
+            }
+        });
+        const config = { attributes: true, childList: true, subtree: true };
+        observer.observe(targetNode, config);
+    }
+    const originalUpdateStatus = window.updateStatus;
+    if (typeof originalUpdateStatus === 'function') {
+        window.updateStatus = function(data) {
+            originalUpdateStatus(data);
+            updateSourceCounts(data);
+            hideUrlTrackingBox();
+        };
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    function hideUrlTrackingBox() {
+        const urlTrackingBoxes = document.querySelectorAll('.url-tracking-container');
+        if (urlTrackingBoxes && urlTrackingBoxes.length > 0) {
+            urlTrackingBoxes.forEach(box => {
+                box.style.display = 'none';
+            });
+        }
+    }
+
+    function updateSourceCounts(data) {
+        if (!data || !data.url_tracking) return;
+        
+        const urlTracking = data.url_tracking;
+        const totalUrls = urlTracking.total_urls_tracked || urlTracking.total_urls_scraped || 0;
+        const sourcesCountElements = document.querySelectorAll('.sources-count, #sources-count');
+        if (sourcesCountElements.length) {
+            sourcesCountElements.forEach(el => {
+                el.textContent = totalUrls.toString();
+            });
+        }
+        const academicSources = (urlTracking.academic_pdf_count || 0) + 
+                               (urlTracking.arxiv_count || 0) + 
+                               (urlTracking.doi_papers_count || 0) + 
+                               (urlTracking.arxiv_papers_count || 0);
+        const academicCountElements = document.querySelectorAll('.academic-count, #academic-count');
+        if (academicCountElements.length) {
+            academicCountElements.forEach(el => {
+                el.textContent = academicSources.toString();
+            });
+        }
+    }
+    setTimeout(function() {
+        hideUrlTrackingBox();
+        if (window.researchData) {
+            updateSourceCounts(window.researchData);
+        }
+    }, 500);
+
+    function hookIntoStatusUpdate() {
+        if (typeof window.updateStatus === 'function') {
+            const originalUpdateStatus = window.updateStatus;
+            window.updateStatus = function(data) {
+                originalUpdateStatus(data);
+                updateSourceCounts(data);
+                hideUrlTrackingBox();
+            };
+        } else {
+            setTimeout(hookIntoStatusUpdate, 500);
+        }
+    }
+    hookIntoStatusUpdate();
+    const progressContainer = document.getElementById('progress-container');
+    if (progressContainer) {
+        const observer = new MutationObserver(function() {
+            hideUrlTrackingBox();
+            if (window.researchData) {
+                updateSourceCounts(window.researchData);
+            }
+        });
+        
+        observer.observe(progressContainer, { 
+            attributes: true, 
+            childList: true, 
+            subtree: true 
+        });
+    }
+});
+</script>
+</body>
+</html>

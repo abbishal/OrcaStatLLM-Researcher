@@ -1,0 +1,6 @@
+{
+  "gemini_api_keys": ["gemini_key"],
+  "google_cse": [
+    {"cse_api": "search_api_key", "cseid": "search_engine_id"}
+  ]
+}
