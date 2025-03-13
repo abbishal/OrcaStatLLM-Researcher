@@ -102,6 +102,14 @@ Step-1: Create a Custom Search Engine on https://cse.google.com
 Step-2: Add Those on config.json
 
 //
+{
+  "gemini_api_keys": ["key1", "optionalkey2"],
+  "google_cse": [
+    {"cse_api": "key1", "cseid": "cse1"},
+    {"cse_api": "key2optional", "cseid": "cse2optional"}
+  ]
+}
+
 
 //
 
@@ -153,6 +161,8 @@ $ python3 run.py
 </p>
 
 ## Demo Video
+
+[Watch the Video](examples/videos/video.mp)
 
 
     
