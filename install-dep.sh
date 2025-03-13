@@ -23,8 +23,9 @@ sudo apt-get update && sudo apt-get install -y \
     libgdk-pixbuf2.0-0 \
     libgdk-pixbuf-xlib-2.0-0 \
     
-sudo pip3 install playwright
+sudo pip install playwright
 playwright install chromium
 
-pip3 install -r requirements.txt
-sudo pip3 install weasyprint
+pip install --upgrade -r requirements.txt
+pip install --upgrade python-docx
+sudo pip install weasyprint
