@@ -18,3 +18,4 @@ requests
 wikipedia
 google-genai
 docx
+weasyprint
