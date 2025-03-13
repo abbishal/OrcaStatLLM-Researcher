@@ -17,6 +17,7 @@ sudo apt-get update && sudo apt-get install -y \
     libxkbcommon0 \
     libcairo2 \
     libasound2 \
+    libasound2-dev\
     libatspi2.0-0 \
     libpangocairo-1.0-0 \
     libpangoft2-1.0-0 \
