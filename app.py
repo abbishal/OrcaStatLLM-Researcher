@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, session
 import os
 import uuid
 import threading
@@ -10,6 +10,8 @@ from datetime import datetime
 from pathlib import Path
 import io
 import urllib.parse
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 from modules.researcher import OrcaStatLLMScientist
 from modules.utils.async_buffer import AsyncBuffer
@@ -17,6 +19,55 @@ from modules.guided_research import GuidedResearchAssistant
 from modules.document.pdf_converter import PDFConverter
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///orcastatllm.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = "not_a_secret"
+db = SQLAlchemy(app)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(80), unique=True, nullable=False)
+    tasks = db.relationship('Task', backref='user', lazy=True, cascade="all,delete")
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    topic = db.Column(db.String(2000), nullable=False)
+    action_type = db.Column(db.String(50), nullable=False)
+    status = db.Column(db.String(50), nullable=False)
+    is_event = db.Column(db.Boolean, nullable=False)
+    start_time = db.Column(db.String(50), nullable=False)
+    markdown_content = db.Column(LONGTEXT, nullable=False)
+    logs = db.relationship('Log', backref='task', lazy=True, cascade="all,delete")
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(LONGTEXT, nullable=False)
+    high_level = db.Column(db.Boolean, nullable=False)
+    timestamp = db.Column(db.String(50), nullable=False)
+    task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+
+
+
+def with_app_context(func):
+    """Automatically wraps a function in an application context."""
+    def wrapper(*args, **kwargs):
+        with app.app_context():
+            return func(*args, **kwargs)
+    return wrapper
+    
+
+try:
+    with app.app_context():
+        db.create_all()
+        db.session.add(User(username='admin', password='admin'))
+        db.session.commit()
+except:
+    pass
+
+
 
 
 RESEARCH_DIR = Path.home() / ".orcallm" / "research"
@@ -65,22 +116,41 @@ def load_api_keys():
         print(f"Error loading config: {str(e)}")
         return {}
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if not username or not password:
+            return redirect(url_for('index', error=urllib.parse.quote("Username and password are required.")))
+        user = User.query.filter_by(username=username, password=password).first()
+        if not user:
+            return redirect(url_for('index', error=urllib.parse.quote("Invalid username or password.")))
+        session['username'] = user.username
+        session['user_id'] = user.id
+        return redirect(url_for('index'))
+    if 'username' not in session:
+        return render_template('login.html')
+    return render_template('index.html', tasks=Task.query.filter_by(user_id=session['user_id']).all())
+
 
 @app.route('/start_research', methods=['POST'])
 def start_research():
     research_details = request.form.get('research_details')
     action_type = request.form.get('action_type')
-    
+    title = request.form.get('title')
+    is_event = request.form.get('is_event') == 'on'
     if not research_details or not action_type:
         return redirect(url_for('index', error=urllib.parse.quote("Research topic and action type are required.")))
-    
+
     session_id = str(uuid.uuid4())
 
     researcher = OrcaStatLLMScientist(verbose=True)
     buffer = AsyncBuffer(verbose=False)  
+    task = Task(title=title, topic=research_details, action_type=action_type, status='initializing', is_event=is_event, start_time=datetime.now().isoformat(), markdown_content='', user_id=session['user_id'])
+    db.session.add(task)
+    db.session.commit()
+    task_id = task.id
 
     active_sessions[session_id] = {
         'researcher': researcher,
@@ -91,12 +161,14 @@ def start_research():
         'markdown_content': '',
         'logs': [],
         'log_capture': LogCapture(buffer),
-        'action_type': action_type
+        'action_type': action_type,
+        'task_id': task_id
     }
     
-    buffer.add_log("Starting research process...", high_level=True)
-    buffer.add_log(f"Session ID: {session_id}", high_level=True)
-    buffer.add_log("Initializing research process...", high_level=True)
+    buffer.add_log("Starting research process...", high_level=True, task_id=task_id)
+    buffer.add_log(f"Session ID: {session_id}", high_level=True, task_id=task_id)
+    buffer.add_log("Initializing research process...", high_level=True, task_id=task_id)
+    Task.
     
     if action_type == 'write_paper':
         thread = threading.Thread(
@@ -113,6 +185,7 @@ def start_research():
     
     return redirect(url_for('session', session_id=session_id))
 
+@with_app_context
 def run_research_async(session_id, topic, researcher, buffer):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -181,6 +254,7 @@ def run_research_async(session_id, topic, researcher, buffer):
         log_capture.stop_capture()
         loop.close()
 
+@with_app_context
 def run_guided_research_async(session_id, topic, buffer):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

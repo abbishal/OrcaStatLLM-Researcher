@@ -1,6 +1,6 @@
 {
-  "gemini_api_keys": ["gemini_key"],
+  "gemini_api_keys": ["AIzaSyAsrc18wBnfbT6ibEUWwHVtj2D76vp5OBM"],
   "google_cse": [
-    {"cse_api": "search_api_key", "cseid": "search_engine_id"}
+    {"cse_api": "AIzaSyD75FqpHK06THL6455RZ2ndo2NZidOOCwg", "cseid": "c6cccd949414a4a02"}
   ]
 }

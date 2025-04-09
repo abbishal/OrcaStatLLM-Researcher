@@ -50,6 +50,7 @@ class AsyncBuffer:
                 print(f"{colorama.Fore.GREEN}[RESEARCHER]{colorama.Style.RESET_ALL} {log}", file=self._stdout)
                     
             self.logs.append(log_entry)
+            
             return log_entry
         finally:
             self._in_add_log = False
